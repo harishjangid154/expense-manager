@@ -63,6 +63,7 @@
         "dev": "next dev",
         "build": "next build",
         "start": "next start",
-        "lint": "echo \"No lint configured\""
+        "lint": "echo \"No lint configured\"",
+        "export:all": "next build && next export"
     }
 }

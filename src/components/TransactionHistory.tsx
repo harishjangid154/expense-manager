@@ -201,11 +201,10 @@ export function TransactionHistory({ transactions, settings }: TransactionHistor
               <Download className="w-4 h-4 mr-2" />
               Export Transactions
             </Button>
-            <Button 
+            <Button
               variant="outline"
               onClick={exportDashboardToExcel}
               className="glass border-[rgba(255,255,255,0.2)] hover:border-primary hover:text-primary hover:scale-[1.02] hover:shadow-[0_0_10px_rgba(0,255,255,0.2)] rounded-xl h-11"
-              className="glass border-[rgba(255,255,255,0.2)] hover:border-primary"
             >
               <Download className="w-4 h-4 mr-2" />
               Export Full Report

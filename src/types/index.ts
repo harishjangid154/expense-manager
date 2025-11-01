@@ -46,9 +46,12 @@ export interface ExpenseEntry {
   type: 'expense' | 'earning';
   amount: number;
   currency: string;
+  originalAmount?: number;
+  originalCurrency?: string;
   category: string;
-  description: string;
+  comment: string;
   accountId: string;
   isInvestment?: boolean;
   assetId?: string;
+  assetName?: string;
 }

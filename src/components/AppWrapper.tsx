@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Dashboard } from '@/components/Dashboard';
-import { AddEntryModal, ExpenseEntry } from '@/components/AddEntryModal';
+import { AddEntryModal } from '@/components/AddEntryModal';
+import { ExpenseEntry } from '@/types';
 import { AccountsModal } from '@/components/AccountsModal';
 import { AutoImportSettings } from '@/components/AutoImportSettings';
 import { SettingsModal } from '@/components/SettingsModal';
@@ -27,31 +28,19 @@ export function AppWrapper() {
     lastRateUpdate: new Date()
   });
 
-  // Load data from localStorage on mount
+  // Load data from storage on mount
   useEffect(() => {
-    const savedData = loadFromStorage();
-    setAccounts(savedData.accounts);
-    setAssets(savedData.assets);
-    setTransactions(savedData.transactions);
-    setSettings(savedData.settings);
+    const data = loadFromStorage();
+    setAccounts(data.accounts);
+    setAssets(data.assets);
+    setTransactions(data.transactions);
+    setSettings(data.settings);
   }, []);
 
-  // Save data to localStorage whenever it changes
+  // Save data to storage whenever it changes
   useEffect(() => {
-    saveToStorage({ accounts });
-  }, [accounts]);
-
-  useEffect(() => {
-    saveToStorage({ assets });
-  }, [assets]);
-
-  useEffect(() => {
-    saveToStorage({ transactions });
-  }, [transactions]);
-
-  useEffect(() => {
-    saveToStorage({ settings });
-  }, [settings]);
+    saveToStorage({ accounts, assets, transactions, settings });
+  }, [accounts, assets, transactions, settings]);
 
   const handleAddAccount = (account: Omit<BankAccount, 'id'>) => {
     const newAccount: BankAccount = {
@@ -103,7 +92,7 @@ export function AppWrapper() {
     toast.success(
       entry.type === 'earning' ? 'Earning added successfully!' : 'Expense added successfully!',
       {
-        description: `${entry.description} - ${formatCurrency(entry.amount, settings.defaultCurrency)}`,
+        description: `${entry.comment} - ${formatCurrency(entry.amount, settings.defaultCurrency)}`,
       }
     );
   };
@@ -124,7 +113,7 @@ export function AppWrapper() {
       <AddEntryModal
         open={isEntryModalOpen}
         onOpenChange={(open) => setIsEntryModalOpen(open)}
-        onAddEntry={handleAddEntry}
+        onSubmit={handleAddEntry}
         accounts={accounts}
         settings={settings}
       />

@@ -64,6 +64,7 @@
         "build": "next build",
         "start": "next start",
         "lint": "echo \"No lint configured\"",
-        "export:all": "next build && next export"
+        "export": "next build",
+        "predeploy": "next build"
     }
 }

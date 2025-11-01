@@ -13,6 +13,8 @@ interface DashboardProps {
   onManageAccounts: () => void;
   onOpenAutoImport: () => void;
   onOpenSettings: () => void;
+  onAccountClick?: (account: BankAccount) => void;
+  onAssetClick?: (asset: Asset) => void;
   accounts: BankAccount[];
   assets: Asset[];
   settings: UserSettings;
@@ -195,7 +197,9 @@ export function Dashboard({
   onAddEntry, 
   onManageAccounts, 
   onOpenAutoImport, 
-  onOpenSettings, 
+  onOpenSettings,
+  onAccountClick,
+  onAssetClick,
   accounts = [], 
   assets = [], 
   settings = { defaultCurrency: 'INR', exchangeRates: {} }, 
@@ -290,6 +294,8 @@ export function Dashboard({
           accounts={accounts} 
           assets={assets}
           onManageAccounts={onManageAccounts}
+          onAccountClick={onAccountClick}
+          onAssetClick={onAssetClick}
           settings={settings}
         />
       </div>

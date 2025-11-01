@@ -9,6 +9,8 @@ interface WealthSectionProps {
   accounts: BankAccount[];
   assets: Asset[];
   onManageAccounts: () => void;
+  onAccountClick?: (account: BankAccount) => void;
+  onAssetClick?: (asset: Asset) => void;
   settings: UserSettings;
 }
 
@@ -21,7 +23,7 @@ const assetIcons: Record<string, string> = {
   other: '💎',
 };
 
-export function WealthSection({ accounts, assets, onManageAccounts, settings }: WealthSectionProps) {
+export function WealthSection({ accounts, assets, onManageAccounts, onAccountClick, onAssetClick, settings }: WealthSectionProps) {
   const [expandedAssetTypes, setExpandedAssetTypes] = useState<string[]>([]);
   
   const totalAccountBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
@@ -114,7 +116,8 @@ export function WealthSection({ accounts, assets, onManageAccounts, settings }: 
                 return (
                   <div
                     key={account.id}
-                    className="glass-strong rounded-xl p-3 flex items-center justify-between hover:neon-glow-blue transition-all"
+                    onClick={() => onAccountClick?.(account)}
+                    className="glass-strong rounded-xl p-3 flex items-center justify-between hover:neon-glow-blue transition-all cursor-pointer"
                     style={{ borderLeft: `3px solid ${account.color}` }}
                   >
                     <div className="flex items-center gap-3">
@@ -196,7 +199,8 @@ export function WealthSection({ accounts, assets, onManageAccounts, settings }: 
                             .map((asset) => (
                               <div
                                 key={asset.id}
-                                className="p-3 pl-14 flex items-center justify-between hover:glass transition-all border-t border-[rgba(255,255,255,0.05)]"
+                                onClick={() => onAssetClick?.(asset)}
+                                className="p-3 pl-14 flex items-center justify-between hover:glass transition-all border-t border-[rgba(255,255,255,0.05)] cursor-pointer"
                               >
                                 <div>
                                   <p className="text-sm text-foreground">{asset.name}</p>
@@ -223,7 +227,8 @@ export function WealthSection({ accounts, assets, onManageAccounts, settings }: 
                   .map((asset) => (
                     <div
                       key={asset.id}
-                      className="glass-strong rounded-xl p-3 flex items-center justify-between hover:neon-glow-purple transition-all"
+                      onClick={() => onAssetClick?.(asset)}
+                      className="glass-strong rounded-xl p-3 flex items-center justify-between hover:neon-glow-purple transition-all cursor-pointer"
                     >
                       <div className="flex items-center gap-3">
                         <span className="text-2xl">{assetIcons[asset.type] || assetIcons.other}</span>

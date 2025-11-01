@@ -1,12 +1,11 @@
-'use client';
-
-import { Providers } from '../app/providers';
-import '../styles/globals.css';
+import { Providers } from './providers';
+import '@/styles/globals.css';
+import type { ReactNode } from 'react';
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <html lang="en">

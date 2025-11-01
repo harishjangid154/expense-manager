@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Dashboard } from './components/Dashboard';
-import { AddEntryModal, ExpenseEntry } from './components/AddEntryModal';
+import { AddEntryModal } from './components/AddEntryModal';
+import { ExpenseEntry } from './types';
 import { AccountsModal } from './components/AccountsModal';
 import { AutoImportSettings } from './components/AutoImportSettings';
 import { SettingsModal } from './components/SettingsModal';
@@ -8,6 +9,7 @@ import { Toaster } from './components/ui/sonner';
 import { toast } from 'sonner';
 import { BankAccount, Asset, Transaction, UserSettings } from './types';
 import { convertCurrency, fetchExchangeRates, formatCurrency, FALLBACK_RATES } from './utils/currency';
+import { loadFromStorage, saveToStorage } from './utils/storage';
 
 // Helper to generate unique IDs
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -25,35 +27,19 @@ export default function App() {
     exchangeRates: FALLBACK_RATES
   });
 
-  // Load data from localStorage on mount
+  // Load data from storage on mount
   useEffect(() => {
-    const savedAccounts = localStorage.getItem('accounts');
-    const savedAssets = localStorage.getItem('assets');
-    const savedTransactions = localStorage.getItem('transactions');
-    const savedSettings = localStorage.getItem('settings');
-
-    if (savedAccounts) setAccounts(JSON.parse(savedAccounts));
-    if (savedAssets) setAssets(JSON.parse(savedAssets));
-    if (savedTransactions) setTransactions(JSON.parse(savedTransactions));
-    if (savedSettings) setSettings(JSON.parse(savedSettings));
+    const data = loadFromStorage();
+    setAccounts(data.accounts);
+    setAssets(data.assets);
+    setTransactions(data.transactions);
+    setSettings(data.settings);
   }, []);
 
-  // Save data to localStorage whenever it changes
+  // Save data to storage whenever it changes
   useEffect(() => {
-    localStorage.setItem('accounts', JSON.stringify(accounts));
-  }, [accounts]);
-
-  useEffect(() => {
-    localStorage.setItem('assets', JSON.stringify(assets));
-  }, [assets]);
-
-  useEffect(() => {
-    localStorage.setItem('transactions', JSON.stringify(transactions));
-  }, [transactions]);
-
-  useEffect(() => {
-    localStorage.setItem('settings', JSON.stringify(settings));
-  }, [settings]);
+    saveToStorage({ accounts, assets, transactions, settings });
+  }, [accounts, assets, transactions, settings]);
 
   const handleAddAccount = (account: Omit<BankAccount, 'id'>) => {
     const newAccount: BankAccount = {

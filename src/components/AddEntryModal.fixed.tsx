@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { BankAccount, Asset, Transaction, UserSettings } from '@/types';
+import { BankAccount, Asset, Transaction, UserSettings, ExpenseEntry } from '@/types';
 import { useUserSettings } from '@/utils/settings';
 import { SUPPORTED_CURRENCIES, formatCurrency } from '@/utils/currency';
 import { 
@@ -41,15 +41,15 @@ import {
 interface AddEntryModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddEntry: (entry: Transaction) => void;
+  onSubmit: (entry: ExpenseEntry) => void;
   accounts: BankAccount[];
-  settings?: UserSettings;
+  settings: UserSettings;
 }
 
 const currencies = SUPPORTED_CURRENCIES.map(c => ({
-  code: c,
-  symbol: formatCurrency(0, c).charAt(0),
-  name: new Intl.DisplayNames(['en'], { type: 'currency' }).of(c) || c
+  code: c.code,
+  symbol: formatCurrency(0, c.code).charAt(0),
+  name: new Intl.DisplayNames(['en'], { type: 'currency' }).of(c.code) || c.code
 }));
 
 const expenseCategories = [
@@ -73,7 +73,7 @@ const earningCategories = [
   { value: 'other', label: 'Other Income', icon: DollarSign },
 ];
 
-export function AddEntryModal({ open, onOpenChange, onAddEntry, accounts, settings }: AddEntryModalProps) {
+export function AddEntryModal({ open, onOpenChange, onSubmit, accounts, settings }: AddEntryModalProps) {
   const [type, setType] = useState<'expense' | 'earning'>('expense');
   const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState(settings?.defaultCurrency || 'INR');
@@ -90,7 +90,7 @@ export function AddEntryModal({ open, onOpenChange, onAddEntry, accounts, settin
     e.preventDefault();
     if (!amount || !category || !accountId) return;
 
-    onAddEntry({
+    onSubmit({
       type,
       amount: parseFloat(amount),
       currency,
@@ -100,7 +100,6 @@ export function AddEntryModal({ open, onOpenChange, onAddEntry, accounts, settin
       isInvestment: isInvestmentCategory,
       ...(isInvestmentCategory && {
         assetId: assetName || category,
-        date: new Date(),
       })
     });
 

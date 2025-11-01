@@ -1,13 +1,7 @@
-import '@/styles/globals.css';
-import { Inter } from 'next/font/google';
-import { Providers } from './providers';
+'use client';
 
-const inter = Inter({ subsets: ['latin'] });
-
-export const metadata = {
-  title: 'Expense Manager Dashboard',
-  description: 'Track and manage your expenses efficiently',
-};
+import { Providers } from '../app/providers';
+import '../styles/globals.css';
 
 export default function RootLayout({
   children,
@@ -15,8 +9,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+    <html lang="en">
+      <body className="dark">
         <Providers>{children}</Providers>
       </body>
     </html>

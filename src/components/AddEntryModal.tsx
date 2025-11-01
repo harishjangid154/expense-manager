@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Textarea } from './ui/textarea';
 import { Checkbox } from './ui/checkbox';
 import { SUPPORTED_CURRENCIES, convertCurrency } from '../utils/currency';
-import { BankAccount, UserSettings } from '../types';
+import { BankAccount, UserSettings, ExpenseEntry } from '../types';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -34,18 +34,6 @@ interface AddEntryModalProps {
   settings: UserSettings;
 }
 
-export interface ExpenseEntry {
-  type: 'expense' | 'earning';
-  amount: number;
-  currency: string;
-  originalAmount?: number;
-  originalCurrency?: string;
-  category: string;
-  comment: string;
-  accountId: string;
-  isInvestment?: boolean;
-  assetName?: string;
-}
 
 const expenseCategories = [
   { value: 'rent', label: 'Rent', icon: Home, isInvestment: false },

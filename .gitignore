@@ -1,0 +1,139 @@
+node_modules
+
+.next
+build
+.env
+.DS_Store
+.vscode
+npm-debug.log
+yarn-error.log
+.idea
+dist
+coverage
+*.log
+*.tsbuildinfo
+.cache
+out
+public/static/uploads
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.local
+*.pem
+*.p12
+*.key
+*.crt
+*.cert
+*.pfx
+*.bak
+*.swp
+*.swo
+*.tmp
+*.old
+*.orig
+*.rej
+*.class
+*.war
+*.jar
+*.iml
+*.log.*
+*.zip
+*.tar.gz
+*.rar
+*.7z
+*.exe
+*.dll
+*.so
+*.dylib
+*.lib
+*.o
+*.obj
+*.out
+*.bin
+
+# Ignore IDE specific files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Ignore OS generated files
+Thumbs.db
+ehthumbs.db
+
+
+Desktop.ini
+.DS_Store
+
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Ignore temporary files
+*.swp
+*.swo
+*.tmp
+*.bak
+*.old
+
+
+# Ignore build artifacts
+dist/
+build/
+out/
+coverage/
+.next/
+.cache/
+# Ignore environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+# Ignore log files
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+# Ignore dependency directories 
+node_modules/
+jspm_packages/
+# Ignore uploaded files
+public/static/uploads/
+# Ignore compiled TypeScript files
+*.tsbuildinfo
+# Ignore certificate files
+*.pem
+*.p12
+*.key
+*.crt
+*.cert
+*.pfx
+
+# Ignore archive files
+*.zip
+*.tar.gz
+*.rar
+*.7z
+# Ignore binary files
+*.exe
+*.dll
+*.so
+*.dylib
+*.lib
+*.obj
+*.o
+*.out
+*.bin
+# Ignore Java files
+*.class
+*.war
+*.jar
+# Ignore IDE specific files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+# Ignore OS generated files

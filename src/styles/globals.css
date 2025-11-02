@@ -157,4 +157,27 @@
   .animate-shimmer {
     animation: shimmer 2s infinite;
   }
+
+  /* TODO: Responsive utilities for mobile-first design */
+  /* Mobile card layout */
+  .mobile-card {
+    @apply flex flex-col gap-3 p-4 rounded-xl glass-strong border border-[rgba(255,255,255,0.05)];
+  }
+
+  /* Responsive container */
+  .responsive-container {
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Responsive grid */
+  .responsive-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4;
+  }
+
+  /* Mobile-friendly buttons */
+  @media (max-width: 640px) {
+    button, .btn {
+      @apply min-h-[44px] min-w-[44px];
+    }
+  }
 }

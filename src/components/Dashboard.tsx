@@ -1,7 +1,7 @@
 import { SummaryCard } from './SummaryCard';
 import { WealthSection } from './WealthSection';
 import { TransactionHistory } from './TransactionHistory';
-import { TrendingUp, TrendingDown, Wallet, Calendar, Plus, Sparkles, Settings } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, Calendar, Plus, Sparkles, Settings, Repeat, BarChart3 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Area, AreaChart } from 'recharts';
@@ -13,6 +13,8 @@ interface DashboardProps {
   onManageAccounts: () => void;
   onOpenAutoImport: () => void;
   onOpenSettings: () => void;
+  onOpenRecurringExpenses: () => void;
+  onOpenBrokerModal: () => void;
   onAccountClick?: (account: BankAccount) => void;
   onAssetClick?: (asset: Asset) => void;
   accounts: BankAccount[];
@@ -198,6 +200,8 @@ export function Dashboard({
   onManageAccounts, 
   onOpenAutoImport, 
   onOpenSettings,
+  onOpenRecurringExpenses,
+  onOpenBrokerModal,
   onAccountClick,
   onAssetClick,
   accounts = [], 
@@ -266,6 +270,24 @@ export function Dashboard({
               className="glass border-[rgba(255,255,255,0.2)] hover:border-primary hover:text-primary hover:scale-[1.02] hover:shadow-[0_0_10px_rgba(0,255,255,0.2)] rounded-xl h-11 px-4"
             >
               <Settings className="w-4 h-4" />
+            </Button>
+
+              <Button 
+              onClick={onOpenRecurringExpenses}
+              variant="outline"
+              className="glass border-[rgba(255,255,255,0.2)] hover:border-[#FF6B9D] hover:text-[#FF6B9D] hover:scale-[1.02] hover:shadow-[0_0_10px_rgba(255,107,157,0.2)] rounded-xl h-11 px-4"
+            >
+              <Repeat className="w-4 h-4 mr-2" />
+              Recurring
+            </Button>
+
+              <Button 
+              onClick={onOpenBrokerModal}
+              variant="outline"
+              className="glass border-[rgba(255,255,255,0.2)] hover:border-[#A259FF] hover:text-[#A259FF] hover:scale-[1.02] hover:shadow-[0_0_10px_rgba(162,89,255,0.2)] rounded-xl h-11 px-4"
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Brokers
             </Button>
 
               <Button 

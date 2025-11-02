@@ -1,4 +1,4 @@
-import { BankAccount, Asset, Transaction, UserSettings } from '@/types';
+import { BankAccount, Asset, Transaction, UserSettings, RecurringExpense, BrokerAccount } from '@/types';
 import * as IDB from './indexedDB';
 
 export interface StorageData {
@@ -6,6 +6,8 @@ export interface StorageData {
   assets: Asset[];
   transactions: Transaction[];
   settings: UserSettings;
+  recurringExpenses: RecurringExpense[];
+  brokerAccounts: BrokerAccount[];
   version: number;
 }
 
@@ -121,6 +123,30 @@ export async function saveToStorage(data: Partial<StorageData>): Promise<boolean
       }
     }
     
+    // Save recurring expenses
+    if (data.recurringExpenses !== undefined) {
+      if (data.recurringExpenses.length === 0) {
+        const existing = await IDB.getAllItems<RecurringExpense>(IDB.STORES.RECURRING_EXPENSES);
+        for (const expense of existing) {
+          await IDB.deleteItem(IDB.STORES.RECURRING_EXPENSES, expense.id);
+        }
+      } else {
+        await IDB.updateBulkItems(IDB.STORES.RECURRING_EXPENSES, data.recurringExpenses);
+      }
+    }
+    
+    // Save broker accounts
+    if (data.brokerAccounts !== undefined) {
+      if (data.brokerAccounts.length === 0) {
+        const existing = await IDB.getAllItems<BrokerAccount>(IDB.STORES.BROKER_ACCOUNTS);
+        for (const broker of existing) {
+          await IDB.deleteItem(IDB.STORES.BROKER_ACCOUNTS, broker.id);
+        }
+      } else {
+        await IDB.updateBulkItems(IDB.STORES.BROKER_ACCOUNTS, data.brokerAccounts);
+      }
+    }
+    
     // Save settings
     if (data.settings !== undefined) {
       await IDB.setSetting('userSettings', data.settings);
@@ -144,12 +170,16 @@ export async function loadFromStorage(): Promise<StorageData> {
     const accounts = await IDB.getAllItems<BankAccount>(IDB.STORES.ACCOUNTS);
     const assets = await IDB.getAllItems<Asset>(IDB.STORES.ASSETS, ['purchaseDate']);
     const transactions = await IDB.getAllItems<Transaction>(IDB.STORES.TRANSACTIONS, ['date']);
+    const recurringExpenses = await IDB.getAllItems<RecurringExpense>(IDB.STORES.RECURRING_EXPENSES, ['startDate', 'endDate', 'createdAt', 'lastProcessedDate']);
+    const brokerAccounts = await IDB.getAllItems<BrokerAccount>(IDB.STORES.BROKER_ACCOUNTS, ['createdAt']);
     const settings = await IDB.getSetting<UserSettings>('userSettings') || getDefaultData().settings;
     
     return {
       accounts,
       assets,
       transactions,
+      recurringExpenses,
+      brokerAccounts,
       settings,
       version: STORAGE_VERSION
     };
@@ -193,6 +223,8 @@ function getDefaultData(): StorageData {
     accounts: [],
     assets: [],
     transactions: [],
+    recurringExpenses: [],
+    brokerAccounts: [],
     settings: {
       defaultCurrency: 'INR',
       exchangeRates: {},

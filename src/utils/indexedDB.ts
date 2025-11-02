@@ -1,7 +1,7 @@
-import { BankAccount, Asset, Transaction, UserSettings } from '@/types';
+import { BankAccount, Asset, Transaction, UserSettings, RecurringExpense, BrokerAccount } from '@/types';
 
 const DB_NAME = 'ExpenseManagerDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Bumped version for new stores
 
 // Object store names (matching potential backend table names)
 export const STORES = {
@@ -9,6 +9,8 @@ export const STORES = {
   ASSETS: 'assets',
   TRANSACTIONS: 'transactions',
   SETTINGS: 'settings',
+  RECURRING_EXPENSES: 'recurringExpenses',
+  BROKER_ACCOUNTS: 'brokerAccounts',
 } as const;
 
 // IndexedDB interface
@@ -66,6 +68,21 @@ async function getDB(): Promise<IDBDatabase> {
       // Settings Store (small, but keeping in IndexedDB for consistency)
       if (!db.objectStoreNames.contains(STORES.SETTINGS)) {
         db.createObjectStore(STORES.SETTINGS, { keyPath: 'key' });
+      }
+
+      // Recurring Expenses Store
+      if (!db.objectStoreNames.contains(STORES.RECURRING_EXPENSES)) {
+        const recurringStore = db.createObjectStore(STORES.RECURRING_EXPENSES, { keyPath: 'id' });
+        recurringStore.createIndex('accountId', 'accountId', { unique: false });
+        recurringStore.createIndex('isActive', 'isActive', { unique: false });
+        recurringStore.createIndex('dayOfMonth', 'dayOfMonth', { unique: false });
+        recurringStore.createIndex('category', 'category', { unique: false });
+      }
+
+      // Broker Accounts Store
+      if (!db.objectStoreNames.contains(STORES.BROKER_ACCOUNTS)) {
+        const brokerStore = db.createObjectStore(STORES.BROKER_ACCOUNTS, { keyPath: 'id' });
+        brokerStore.createIndex('name', 'name', { unique: false });
       }
     };
   });
@@ -269,28 +286,41 @@ export async function setSetting<T>(key: string, value: T): Promise<void> {
 export async function clearAll(): Promise<void> {
   const db = await getDB();
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction([STORES.ACCOUNTS, STORES.ASSETS, STORES.TRANSACTIONS, STORES.SETTINGS], 'readwrite');
+    const transaction = db.transaction([
+      STORES.ACCOUNTS, 
+      STORES.ASSETS, 
+      STORES.TRANSACTIONS, 
+      STORES.SETTINGS,
+      STORES.RECURRING_EXPENSES,
+      STORES.BROKER_ACCOUNTS
+    ], 'readwrite');
     
     const accountsReq = transaction.objectStore(STORES.ACCOUNTS).clear();
     const assetsReq = transaction.objectStore(STORES.ASSETS).clear();
     const transactionsReq = transaction.objectStore(STORES.TRANSACTIONS).clear();
     const settingsReq = transaction.objectStore(STORES.SETTINGS).clear();
+    const recurringReq = transaction.objectStore(STORES.RECURRING_EXPENSES).clear();
+    const brokerReq = transaction.objectStore(STORES.BROKER_ACCOUNTS).clear();
     
     let completed = 0;
     const onComplete = () => {
       completed++;
-      if (completed === 4) resolve();
+      if (completed === 6) resolve();
     };
     
     accountsReq.onsuccess = onComplete;
     assetsReq.onsuccess = onComplete;
     transactionsReq.onsuccess = onComplete;
     settingsReq.onsuccess = onComplete;
+    recurringReq.onsuccess = onComplete;
+    brokerReq.onsuccess = onComplete;
     
     accountsReq.onerror = () => reject(accountsReq.error);
     assetsReq.onerror = () => reject(assetsReq.error);
     transactionsReq.onerror = () => reject(transactionsReq.error);
     settingsReq.onerror = () => reject(settingsReq.error);
+    recurringReq.onerror = () => reject(recurringReq.error);
+    brokerReq.onerror = () => reject(brokerReq.error);
     transaction.onerror = () => reject(transaction.error);
   });
 }
@@ -363,6 +393,39 @@ export async function updateBulkItems<T>(storeName: string, items: T[]): Promise
         reject(transaction.error);
       }
     };
+  });
+}
+
+// Query helpers for Recurring Expenses
+export async function getActiveRecurringExpenses(): Promise<RecurringExpense[]> {
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORES.RECURRING_EXPENSES], 'readonly');
+    const store = transaction.objectStore(STORES.RECURRING_EXPENSES);
+    const index = store.index('isActive');
+    const request = index.getAll(true);
+    
+    request.onsuccess = () => {
+      const results = request.result || [];
+      resolve(results.map(item => deserializeDates(item, ['startDate', 'endDate', 'createdAt', 'lastProcessedDate'])));
+    };
+    request.onerror = () => reject(request.error);
+  });
+}
+
+export async function getRecurringExpensesByAccount(accountId: string): Promise<RecurringExpense[]> {
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORES.RECURRING_EXPENSES], 'readonly');
+    const store = transaction.objectStore(STORES.RECURRING_EXPENSES);
+    const index = store.index('accountId');
+    const request = index.getAll(accountId);
+    
+    request.onsuccess = () => {
+      const results = request.result || [];
+      resolve(results.map(item => deserializeDates(item, ['startDate', 'endDate', 'createdAt', 'lastProcessedDate'])));
+    };
+    request.onerror = () => reject(request.error);
   });
 }
 

@@ -10,8 +10,11 @@ import { SettingsModal } from '@/components/SettingsModal';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { AccountDetailModal } from '@/components/AccountDetailModal';
 import { AssetDetailModal } from '@/components/AssetDetailModal';
+import { RecurringExpensesModal } from '@/components/RecurringExpensesModal';
+import { BrokerModal } from '@/components/BrokerModal';
+import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
-import { BankAccount, Asset, Transaction, UserSettings } from '@/types';
+import { BankAccount, Asset, Transaction, UserSettings, RecurringExpense, BrokerAccount } from '@/types';
 import { FALLBACK_RATES, formatCurrency, fetchExchangeRates } from '@/utils/currency';
 import { loadFromStorage, saveToStorage } from '@/utils/storage';
 
@@ -26,9 +29,13 @@ export function AppWrapper() {
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [isAccountDetailOpen, setIsAccountDetailOpen] = useState(false);
   const [isAssetDetailOpen, setIsAssetDetailOpen] = useState(false);
+  const [isRecurringExpensesOpen, setIsRecurringExpensesOpen] = useState(false);
+  const [isBrokerModalOpen, setIsBrokerModalOpen] = useState(false);
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [recurringExpenses, setRecurringExpenses] = useState<RecurringExpense[]>([]);
+  const [brokerAccounts, setBrokerAccounts] = useState<BrokerAccount[]>([]);
   const [settings, setSettings] = useState<UserSettings>({
     defaultCurrency: 'INR',
     exchangeRates: FALLBACK_RATES,
@@ -52,6 +59,8 @@ export function AppWrapper() {
         setAccounts(data.accounts);
         setAssets(data.assets);
         setTransactions(data.transactions);
+        setRecurringExpenses(data.recurringExpenses);
+        setBrokerAccounts(data.brokerAccounts);
         
         // Step 2: Processing transactions
         setLoadingProgress(40);
@@ -125,11 +134,11 @@ export function AppWrapper() {
   // Save data to storage whenever it changes (but only after initial load)
   useEffect(() => {
     if (isInitialized) {
-      saveToStorage({ accounts, assets, transactions, settings }).catch(error => {
+      saveToStorage({ accounts, assets, transactions, recurringExpenses, brokerAccounts, settings }).catch(error => {
         console.error('Failed to save to storage:', error);
       });
     }
-  }, [accounts, assets, transactions, settings, isInitialized]);
+  }, [accounts, assets, transactions, recurringExpenses, brokerAccounts, settings, isInitialized]);
 
   const handleAddAccount = (account: Omit<BankAccount, 'id'>) => {
     const newAccount: BankAccount = {
@@ -255,6 +264,115 @@ export function AppWrapper() {
     }
   };
 
+  // Recurring Expenses Handlers
+  const handleAddRecurringExpense = (expense: Omit<RecurringExpense, 'id' | 'createdAt'>) => {
+    const newExpense: RecurringExpense = {
+      ...expense,
+      id: generateId(),
+      createdAt: new Date(),
+    };
+    setRecurringExpenses([...recurringExpenses, newExpense]);
+  };
+
+  const handleUpdateRecurringExpense = (expense: RecurringExpense) => {
+    setRecurringExpenses(recurringExpenses.map(e => e.id === expense.id ? expense : e));
+  };
+
+  const handleDeleteRecurringExpense = (id: string) => {
+    setRecurringExpenses(recurringExpenses.filter(e => e.id !== id));
+  };
+
+  // Broker Account Handlers
+  const handleAddBroker = (broker: Omit<BrokerAccount, 'id' | 'createdAt'>) => {
+    const newBroker: BrokerAccount = {
+      ...broker,
+      id: generateId(),
+      createdAt: new Date(),
+    };
+    setBrokerAccounts([...brokerAccounts, newBroker]);
+  };
+
+  const handleTransferToBroker = (brokerId: string, amount: number, fromAccountId: string) => {
+    // Deduct from bank account
+    const updatedAccounts = accounts.map(account => {
+      if (account.id === fromAccountId) {
+        return { ...account, balance: account.balance - amount };
+      }
+      return account;
+    });
+    setAccounts(updatedAccounts);
+
+    // Add to broker account
+    const updatedBrokers = brokerAccounts.map(broker => {
+      if (broker.id === brokerId) {
+        return { ...broker, balance: broker.balance + amount };
+      }
+      return broker;
+    });
+    setBrokerAccounts(updatedBrokers);
+
+    // Create transaction record
+    const transaction: Transaction = {
+      id: generateId(),
+      type: 'expense',
+      amount,
+      currency: settings.defaultCurrency,
+      category: 'Broker Transfer',
+      comment: `Transfer to ${brokerAccounts.find(b => b.id === brokerId)?.name}`,
+      accountId: fromAccountId,
+      date: new Date(),
+      brokerId,
+    };
+    setTransactions([...transactions, transaction]);
+  };
+
+  const handleBuyStock = (data: {
+    brokerId: string;
+    name: string;
+    quantity: number;
+    pricePerUnit: number;
+    totalAmount: number;
+  }) => {
+    // Deduct from broker account
+    const updatedBrokers = brokerAccounts.map(broker => {
+      if (broker.id === data.brokerId) {
+        return { ...broker, balance: broker.balance - data.totalAmount };
+      }
+      return broker;
+    });
+    setBrokerAccounts(updatedBrokers);
+
+    // Create stock asset
+    const newAsset: Asset = {
+      id: generateId(),
+      name: data.name,
+      type: 'stocks',
+      value: data.totalAmount,
+      purchaseDate: new Date(),
+      category: 'Stocks',
+      brokerId: data.brokerId,
+      quantity: data.quantity,
+      purchasePrice: data.pricePerUnit,
+    };
+    setAssets([...assets, newAsset]);
+
+    // Create transaction record
+    const transaction: Transaction = {
+      id: generateId(),
+      type: 'expense',
+      amount: data.totalAmount,
+      currency: settings.defaultCurrency,
+      category: 'Stock Purchase',
+      comment: `Bought ${data.quantity} units of ${data.name} @ ${formatCurrency(data.pricePerUnit, settings.defaultCurrency)}`,
+      accountId: data.brokerId, // Using broker as account for tracking
+      date: new Date(),
+      isInvestment: true,
+      assetId: newAsset.id,
+      brokerId: data.brokerId,
+    };
+    setTransactions([...transactions, transaction]);
+  };
+
   // Show loading screen while initializing
   if (isLoading) {
     return <LoadingScreen progress={loadingProgress} status={loadingStatus} />;
@@ -271,6 +389,8 @@ export function AppWrapper() {
         onManageAccounts={() => setIsAccountsModalOpen(true)}
         onOpenAutoImport={() => setIsAutoImportOpen(true)}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        onOpenRecurringExpenses={() => setIsRecurringExpensesOpen(true)}
+        onOpenBrokerModal={() => setIsBrokerModalOpen(true)}
         onAccountClick={(account) => {
           setSelectedAccount(account);
           setIsAccountDetailOpen(true);
@@ -330,6 +450,36 @@ export function AppWrapper() {
         asset={selectedAsset}
         transactions={transactions}
         settings={settings}
+      />
+
+      <RecurringExpensesModal
+        open={isRecurringExpensesOpen}
+        onOpenChange={(open) => setIsRecurringExpensesOpen(open)}
+        recurringExpenses={recurringExpenses}
+        accounts={accounts}
+        settings={settings}
+        onAddRecurringExpense={handleAddRecurringExpense}
+        onUpdateRecurringExpense={handleUpdateRecurringExpense}
+        onDeleteRecurringExpense={handleDeleteRecurringExpense}
+      />
+
+      <BrokerModal
+        open={isBrokerModalOpen}
+        onOpenChange={(open) => setIsBrokerModalOpen(open)}
+        brokerAccounts={brokerAccounts}
+        bankAccounts={accounts}
+        assets={assets}
+        settings={settings}
+        onAddBroker={handleAddBroker}
+        onTransferToBroker={handleTransferToBroker}
+        onBuyStock={handleBuyStock}
+      />
+
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          className: 'glass-strong border-[rgba(255,255,255,0.2)]',
+        }}
       />
     </>
   );

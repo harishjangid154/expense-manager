@@ -1,9 +1,13 @@
+const base = '/expense-manager';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   output: 'export',
   trailingSlash: true,
+ basePath: base,
+  assetPrefix: base,
   images: {
     unoptimized: true, // Required for static export
   },
